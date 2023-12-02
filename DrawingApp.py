@@ -1,6 +1,8 @@
 import tkinter as tk
 import numpy as np
 
+from CNN import train_model;
+
 class DrawingApp:
     def __init__(self, master):
         self.master = master
@@ -86,6 +88,8 @@ class DrawingApp:
         self.canvas.delete("all")
  
 if __name__ == "__main__":
+    #   Only training of 3% of data right now
+    train_model(max_iterations=10, batch_size=4, classes=10)
     root = tk.Tk()
     app = DrawingApp(root)
     root.mainloop()
