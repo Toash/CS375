@@ -1,7 +1,10 @@
 import tkinter as tk
 import numpy as np
 
-from CNN import train_model;
+from CNN import get_output_label, train_model;
+import torch
+
+cnn = None
 
 class DrawingApp:
     def __init__(self, master):
@@ -43,7 +46,12 @@ class DrawingApp:
         
         self.canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="")
         
-        print(x,y)
+        #   print(x,y)
+        #   converting canvas to tensor to let cnn predict label
+        data = self.export_to_numpy()
+        data = np.reshape(data, (1, 1, 28, 28))
+        data = torch.from_numpy(data)
+        print(get_output_label(cnn(data)))
     def erase(self,event):
         
         x = (event. x // self.pixel_size) * self.pixel_size
@@ -58,7 +66,7 @@ class DrawingApp:
 
     def export_to_numpy(self):
         # Create a numpy array to store pixel values
-        pixel_array = np.zeros((28, 28), dtype=np.uint8)
+        pixel_array = np.zeros((28, 28), dtype=np.float32)
 
         # Iterate through the canvas and update the pixel array
         for y in range(0, 28):
@@ -70,15 +78,16 @@ class DrawingApp:
                 
                 pixel_color = self.get_pixel_color(raw_x,raw_y)
                 if(overlapping_items):
-                    pixel_array[y][x] = 1
+                    pixel_array[y][x] = -1
                 else:
-                    pixel_array[y][x] = 0
+                    pixel_array[y][x] = 1
                 
                 #pixel_array[y][x] = 1 if pixel_filled else 0
 
         # Print or save the numpy array as needed
-        print("Exported Numpy Array:")
-        print(pixel_array)
+        #   print("Exported Numpy Array:")
+        #   print(pixel_array)
+        return pixel_array
         
     def get_pixel_color(self, x, y):
         # Check if the pixel at the specified coordinates is filled
@@ -88,8 +97,10 @@ class DrawingApp:
         self.canvas.delete("all")
  
 if __name__ == "__main__":
-    #   Only training of 3% of data right now
-    train_model(max_iterations=10, batch_size=4, classes=10)
+    #   Only training on 3% of data right now
+    cnn = train_model(file_path="./model.pth", max_iterations=20, batch_size=4, classes=10)
+    cnn.eval()
+    
     root = tk.Tk()
     app = DrawingApp(root)
     root.mainloop()

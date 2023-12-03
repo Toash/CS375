@@ -37,6 +37,13 @@ class_labels = {
         "zigzag": "./Data/full_numpy_bitmap_zigzag.npy",
 }
 
+def get_output_label(inputs):
+    """
+    Return the most likely class label of the input. 
+    Args:
+        input (tensor): input 28 x 28 image 
+    """
+    return list(class_labels.keys())[torch.argmax(inputs, dim=1)]
 
 #   CNN model
 class Net(nn.Module):
@@ -119,7 +126,7 @@ def load_dataset(batch_size=10, classes=2):
     
     return (trainset, trainloader, testset, testoader)
 
-def train_model(max_iterations=10, batch_size=4, classes=2):
+def train_model(file_path="./model.pth", max_iterations=10, batch_size=4, classes=2):
     """
     Trains a CNN model on selected labels from the google quick draw dataset.
     """
@@ -127,6 +134,12 @@ def train_model(max_iterations=10, batch_size=4, classes=2):
 
     _trainset, trainloader, _testset, testloader = load_dataset(batch_size, classes)
 
+    try:
+        net = Net(classes)
+        net.load_state_dict(torch.load(file_path))
+        return net
+    except:
+        print("Couldn't load model from file:", file_path)
     net = Net(classes)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
@@ -166,3 +179,6 @@ def train_model(max_iterations=10, batch_size=4, classes=2):
         print("Epoch:", epoch, "accuracy:", trainingAccuracy[-1])
     print(trainingLoss)
     print(trainingAccuracy)
+
+    torch.save(net.state_dict(), file_path)
+    return net
