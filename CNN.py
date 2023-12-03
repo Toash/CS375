@@ -40,7 +40,7 @@ class_labels = {
 
 #   CNN model
 class Net(nn.Module):
-    def __init__(self, classes=2):
+    def __init__(self, classes=10):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
@@ -119,7 +119,7 @@ def load_dataset(batch_size=10, classes=2):
     
     return (trainset, trainloader, testset, testoader)
 
-def train_model(max_iterations=10, batch_size=4, classes=2):
+def train_model(max_iterations=10, batch_size=4, classes=10):
     """
     Trains a CNN model on selected labels from the google quick draw dataset.
     """
