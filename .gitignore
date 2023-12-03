@@ -1,2 +1,5 @@
-//  Ignore python cache files
+#  Ignore python cache files
 *.pyc
+
+# Ignore dataset files
+/Data/

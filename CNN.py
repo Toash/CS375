@@ -47,7 +47,7 @@ def get_output_label(inputs):
 
 #   CNN model
 class Net(nn.Module):
-    def __init__(self, classes=2):
+    def __init__(self, classes=10):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
