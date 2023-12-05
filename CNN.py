@@ -1,3 +1,4 @@
+from operator import itemgetter
 from IPython.display import Math
 from IPython.display import Latex
 
@@ -8,6 +9,7 @@ from scipy import datasets
 
 from sklearn.metrics import classification_report,confusion_matrix
 from sklearn.neural_network import MLPClassifier
+from sympy import Number, false
 
 import torch
 import torchvision
@@ -37,13 +39,20 @@ class_labels = {
         "zigzag": "./Data/full_numpy_bitmap_zigzag.npy",
 }
 
-def get_output_label(inputs):
+def get_output_labels(inputs):
     """
-    Return the most likely class label of the input. 
+    Return a sorted list of tuples containing labels and their probabilities. 
     Args:
         input (tensor): input 28 x 28 image 
     """
-    return list(class_labels.keys())[torch.argmax(inputs, dim=1)]
+    outputs = []
+    for i in range(inputs.shape[1]):
+        outputs.append((
+            list(class_labels.keys())[i],       #   label
+            torch.softmax(inputs, dim=1)[0][i].item() #   probability
+        ))
+    outputs = sorted(outputs, key=itemgetter(1), reverse=True)    #   sort by probability
+    return outputs
 
 #   CNN model
 class Net(nn.Module):
@@ -137,14 +146,14 @@ def train_model(file_path="./model.pth", max_iterations=10, batch_size=4, classe
     """
     torch.manual_seed(0)
 
-    _trainset, trainloader, _testset, testloader = load_dataset(batch_size, classes)
-
     try:
         net = Net(classes)
         net.load_state_dict(torch.load(file_path))
         return net
     except:
         print("Couldn't load model from file:", file_path)
+    _trainset, trainloader, _testset, testloader = load_dataset(batch_size, classes)
+    
     net = Net(classes)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
@@ -152,8 +161,6 @@ def train_model(file_path="./model.pth", max_iterations=10, batch_size=4, classe
     #   Statistics
     trainingLoss = []
     trainingAccuracy = []
-    testLoss = []
-    testAccuracy = []
 
     #   Training model
     for epoch in range(1, max_iterations+1):  # loop over the dataset multiple times
@@ -186,4 +193,21 @@ def train_model(file_path="./model.pth", max_iterations=10, batch_size=4, classe
     print(trainingAccuracy)
 
     torch.save(net.state_dict(), file_path)
+    
+    get_training_performance(net, nn.CrossEntropyLoss(), 4, testloader)
     return net
+def get_training_performance(cnn: Net, criterion, batch_size, testloader):
+    cnn.eval()
+
+    #   Evaluating model
+    testing_loss = 0.0
+    accuracy = 0.0
+    for i, data in enumerate(testloader, 0):
+        inputs, labels = data
+        outputs = cnn(inputs)
+        loss = criterion(outputs, labels)
+        # print statistics
+        testing_loss += loss.item()
+        accuracy += sum(torch.argmax(outputs, dim=1) == labels).item() / float(batch_size)
+    print("Testing loss:", testing_loss / len(testloader))
+    print("Testing accuracy:", accuracy / len(testloader))

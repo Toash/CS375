@@ -1,7 +1,8 @@
+from cgitb import text
 import tkinter as tk
 import numpy as np
 
-from CNN import get_output_label, train_model;
+from CNN import get_output_labels, train_model;
 import torch
 
 cnn = None
@@ -17,17 +18,20 @@ class DrawingApp:
         self.pixel_size = 25  # Adjust this value to set the size of each pixel
 
         self.canvas = tk.Canvas(self.master, width=self.canvas_width, height=self.canvas_height, bg="white")
-        self.canvas.pack(expand=tk.YES, fill=tk.BOTH)
+        self.canvas.grid(row = 0, column=1)
 
         self.setup_bindings()
 
         # Add an export button
         self.export_button = tk.Button(self.master, text="Export to Numpy Bitmap", command=self.export_to_numpy)
-        self.export_button.pack()
+        self.export_button.grid(row = 1, column=0 )
         
         text_label = tk.Label(root, text="Left Mouse - Draw \t Right Mouse - Erase \t C - Clear")
-        text_label.pack()
+        text_label.grid(row=2, column=0)
 
+        #   Predictions
+        self.predictions = tk.Label(root, text="")
+        self.predictions.grid(row = 0, column=0)
     def setup_bindings(self):
         self.canvas.bind("<B1-Motion>", lambda event:self.draw(event=event,color="black"))
         self.canvas.bind("<B2-Motion>", self.erase)
@@ -51,7 +55,13 @@ class DrawingApp:
         data = self.export_to_numpy()
         data = np.reshape(data, (1, 1, 28, 28))
         data = torch.from_numpy(data)
-        print(get_output_label(cnn(data)))
+
+        labels = get_output_labels(cnn(data))
+        output_text = ""
+        for label in labels:
+            output_text += str(label[0]) + ": (" + str(label[1]) + ")\n" 
+        self.predictions.config(text=output_text)
+        
     def erase(self,event):
         
         x = (event. x // self.pixel_size) * self.pixel_size
