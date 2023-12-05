@@ -42,6 +42,17 @@ class DrawingApp:
         self.canvas.bind("<B2-Motion>", self.erase)
         self.master.bind("<KeyPress-c>", self.clear_canvas)
 
+    """
+    Predict current canvas with our model
+    """
+    def predict(self):
+        #   converting canvas to tensor to let cnn predict label
+        data = self.export_to_numpy()
+        data = np.reshape(data, (1, 1, 28, 28))
+        data = torch.from_numpy(data)
+        self.set_prediction_label(get_output_label(cnn(data)))
+        print(get_output_label(cnn(data)))
+        
     def draw(self, event,color):
         x = event.x
         y = event.y
@@ -54,16 +65,9 @@ class DrawingApp:
         x2, y2 = x + self.pixel_size, y + self.pixel_size
         
         self.canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="")
+        self.predict()
         
-        #   print(x,y)
-        #   converting canvas to tensor to let cnn predict label
-        data = self.export_to_numpy()
-        data = np.reshape(data, (1, 1, 28, 28))
-        data = torch.from_numpy(data)
-        self.set_prediction_label(get_output_label(cnn(data)))
-        print(get_output_label(cnn(data)))
     def erase(self,event):
-        
         x = (event. x // self.pixel_size) * self.pixel_size
         y = (event. y // self.pixel_size) * self.pixel_size
 
@@ -73,7 +77,7 @@ class DrawingApp:
         # Erase by deleting identified items
         for item_id in overlapping_items:
             self.canvas.delete(item_id)
-
+        self.predict()
 
     # Numpy bitmap files in the actual dataset are flattened numpy array. Values range from 0 (black) to 255(white)
     def export_to_numpy(self):
@@ -114,6 +118,7 @@ class DrawingApp:
     def clear_canvas(self,event):
         self.canvas.delete("all")
         self.set_prediction_label("")
+ 
  
 if __name__ == "__main__":
     #   Only training on 3% of data right now
