@@ -18,25 +18,52 @@ class DrawingApp:
         self.pixel_size = 25  # Adjust this value to set the size of each pixel
 
         self.canvas = tk.Canvas(self.master, width=self.canvas_width, height=self.canvas_height, bg="white")
-        self.canvas.grid(row = 0, column=1)
+        self.canvas.grid(row = 0, column=1, rowspan=3)
 
         self.setup_bindings()
 
         # Add an export button
         self.export_button = tk.Button(self.master, text="Export to Numpy Bitmap", command=self.export_to_numpy)
-        self.export_button.grid(row = 1, column=0 )
+        self.export_button.grid(row = 3, column=0 )
         
         text_label = tk.Label(root, text="Left Mouse - Draw \t Right Mouse - Erase \t C - Clear")
-        text_label.grid(row=2, column=0)
+        text_label.grid(row=4, column=0)
+        
+        classes_label = tk.Label(root, text="Classes I can recognize: ant, bucket, cow, crab, dragon, fork, lollipop, moon, pizza, zigzag")
+        classes_label.grid(row = 0, column = 0)
+        
+        self.predicted_label = tk.Label(root, text="")
+        self.predicted_label.grid(row = 1, column=0)
+        
+        #   Prediction Probabilities
+        self.predictions_probabilities = tk.Label(root, text="")
+        self.predictions_probabilities.grid(row = 2, column=0)
 
-        #   Predictions
-        self.predictions = tk.Label(root, text="")
-        self.predictions.grid(row = 0, column=0)
+    def set_prediction_label(self,label: str):
+        self.predicted_label.config(text="My prediction is: " + label)
+
     def setup_bindings(self):
         self.canvas.bind("<B1-Motion>", lambda event:self.draw(event=event,color="black"))
         self.canvas.bind("<B2-Motion>", self.erase)
         self.master.bind("<KeyPress-c>", self.clear_canvas)
 
+    """
+    Predict current canvas with our model
+    """
+    def predict(self):
+        #   print(x,y)
+        #   converting canvas to tensor to let cnn predict label
+        data = self.export_to_numpy()
+        data = np.reshape(data, (1, 1, 28, 28))
+        data = torch.from_numpy(data)
+
+        labels = get_output_labels(cnn(data))
+        output_text = ""
+        for label in labels:
+            output_text += str(label[0]) + ": " + str(label[1]) + "%\n" 
+        self.set_prediction_label(labels[0][0])
+        self.predictions_probabilities.config(text=output_text)
+        
     def draw(self, event,color):
         x = event.x
         y = event.y
@@ -49,21 +76,9 @@ class DrawingApp:
         x2, y2 = x + self.pixel_size, y + self.pixel_size
         
         self.canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="")
-        
-        #   print(x,y)
-        #   converting canvas to tensor to let cnn predict label
-        data = self.export_to_numpy()
-        data = np.reshape(data, (1, 1, 28, 28))
-        data = torch.from_numpy(data)
-
-        labels = get_output_labels(cnn(data))
-        output_text = ""
-        for label in labels:
-            output_text += str(label[0]) + ": (" + str(label[1]) + ")\n" 
-        self.predictions.config(text=output_text)
+        self.predict()
         
     def erase(self,event):
-        
         x = (event. x // self.pixel_size) * self.pixel_size
         y = (event. y // self.pixel_size) * self.pixel_size
 
@@ -73,7 +88,7 @@ class DrawingApp:
         # Erase by deleting identified items
         for item_id in overlapping_items:
             self.canvas.delete(item_id)
-
+        self.predict()
 
     # Numpy bitmap files in the actual dataset are flattened numpy array. Values range from 0 (black) to 255(white)
     def export_to_numpy(self):
@@ -113,6 +128,8 @@ class DrawingApp:
     
     def clear_canvas(self,event):
         self.canvas.delete("all")
+        self.set_prediction_label("")
+ 
  
 if __name__ == "__main__":
     #   Only training on 3% of data right now
