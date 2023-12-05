@@ -23,11 +23,20 @@ class DrawingApp:
 
         # Add an export button
         self.export_button = tk.Button(self.master, text="Export to Numpy Bitmap", command=self.export_to_numpy)
+        
         self.export_button.pack()
         
         text_label = tk.Label(root, text="Left Mouse - Draw \t Right Mouse - Erase \t C - Clear")
+        classes_label = tk.Label(root, text="Classes I can recognize: ant, bucket, cow, crab, dragon, fork, lollipop, moon, pizza, zigzag")
+        self.predicted_label = tk.Label(root, text="")
         text_label.pack()
+        classes_label.pack()
+        self.predicted_label.pack()
 
+    def set_prediction_label(self,label: str):
+        self.predicted_label.config(text="My prediction is: " + label)
+        self.predicted_label.pack()
+        
     def setup_bindings(self):
         self.canvas.bind("<B1-Motion>", lambda event:self.draw(event=event,color="black"))
         self.canvas.bind("<B2-Motion>", self.erase)
@@ -51,6 +60,7 @@ class DrawingApp:
         data = self.export_to_numpy()
         data = np.reshape(data, (1, 1, 28, 28))
         data = torch.from_numpy(data)
+        self.set_prediction_label(get_output_label(cnn(data)))
         print(get_output_label(cnn(data)))
     def erase(self,event):
         
@@ -103,6 +113,7 @@ class DrawingApp:
     
     def clear_canvas(self,event):
         self.canvas.delete("all")
+        self.set_prediction_label("")
  
 if __name__ == "__main__":
     #   Only training on 3% of data right now
