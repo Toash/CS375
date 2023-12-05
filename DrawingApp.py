@@ -65,7 +65,7 @@ class DrawingApp:
             self.canvas.delete(item_id)
 
 
-    # Numpy bitmap files in the actual dataset are flattened numpy array. 
+    # Numpy bitmap files in the actual dataset are flattened numpy array. Values range from 0 (black) to 255(white)
     def export_to_numpy(self):
         # Create a numpy array to store pixel values
         pixel_array = np.zeros((28, 28), dtype=np.float32)
