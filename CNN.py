@@ -119,9 +119,14 @@ def load_dataset(batch_size=10, classes=2):
         X, y, test_size=.2, random_state=123, stratify=y
     )
 
-    trainset = QuickDrawDataset(X_train, y_train)
+    transform = transforms.Compose([
+        transforms.RandomAffine(degrees=30, translate=(.2, .2), scale=(.8, 1.2)),
+        transforms.RandomCrop(28, pad_if_needed=True)
+    ])
+
+    trainset = QuickDrawDataset(X_train, y_train, transform=transform)
     trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2)
-    testset = QuickDrawDataset(X_test, y_test)
+    testset = QuickDrawDataset(X_test, y_test, transform=transform)
     testoader = DataLoader(testset, batch_size=batch_size, shuffle=True, num_workers=2)
     
     return (trainset, trainloader, testset, testoader)

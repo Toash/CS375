@@ -79,10 +79,16 @@ class DrawingApp:
                 overlapping_items = self.canvas.find_overlapping(*bounding_box)
                 
                 pixel_color = self.get_pixel_color(raw_x,raw_y)
-                if(overlapping_items):
-                    pixel_array[y][x] = -1
-                else:
+
+                #   Because of the data the model is trained on, it expects the background to be black
+                #   and strokes to be white
+                #   technically the drawing app we use has a white background and black strokes,
+                #   but internally we represent the 'black' pixels as 'white' and vice versa
+                #   so that the model can better understand the input
+                if(overlapping_items):  #   black turns to white (1)
                     pixel_array[y][x] = 1
+                else:                   #   white turns to black (-1)
+                    pixel_array[y][x] = -1
                 
                 #pixel_array[y][x] = 1 if pixel_filled else 0
 
