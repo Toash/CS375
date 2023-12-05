@@ -2,4 +2,6 @@
 
 Repo for Machine Learning Project
 
-CNN
+Convolutional Neural Network used to recognize images in quick draw dataset
+
+https://github.com/googlecreativelab/quickdraw-dataset
