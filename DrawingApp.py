@@ -1,7 +1,8 @@
+from cgitb import text
 import tkinter as tk
 import numpy as np
 
-from CNN import get_output_label, train_model;
+from CNN import get_output_labels, train_model;
 import torch
 
 cnn = None
@@ -17,26 +18,30 @@ class DrawingApp:
         self.pixel_size = 25  # Adjust this value to set the size of each pixel
 
         self.canvas = tk.Canvas(self.master, width=self.canvas_width, height=self.canvas_height, bg="white")
-        self.canvas.pack(expand=tk.YES, fill=tk.BOTH)
+        self.canvas.grid(row = 0, column=1, rowspan=3)
 
         self.setup_bindings()
 
         # Add an export button
         self.export_button = tk.Button(self.master, text="Export to Numpy Bitmap", command=self.export_to_numpy)
-        
-        self.export_button.pack()
+        self.export_button.grid(row = 3, column=0 )
         
         text_label = tk.Label(root, text="Left Mouse - Draw \t Right Mouse - Erase \t C - Clear")
+        text_label.grid(row=4, column=0)
+        
         classes_label = tk.Label(root, text="Classes I can recognize: ant, bucket, cow, crab, dragon, fork, lollipop, moon, pizza, zigzag")
+        classes_label.grid(row = 0, column = 0)
+        
         self.predicted_label = tk.Label(root, text="")
-        text_label.pack()
-        classes_label.pack()
-        self.predicted_label.pack()
+        self.predicted_label.grid(row = 1, column=0)
+        
+        #   Prediction Probabilities
+        self.predictions_probabilities = tk.Label(root, text="")
+        self.predictions_probabilities.grid(row = 2, column=0)
 
     def set_prediction_label(self,label: str):
         self.predicted_label.config(text="My prediction is: " + label)
-        self.predicted_label.pack()
-        
+
     def setup_bindings(self):
         self.canvas.bind("<B1-Motion>", lambda event:self.draw(event=event,color="black"))
         self.canvas.bind("<B2-Motion>", self.erase)
@@ -46,12 +51,18 @@ class DrawingApp:
     Predict current canvas with our model
     """
     def predict(self):
+        #   print(x,y)
         #   converting canvas to tensor to let cnn predict label
         data = self.export_to_numpy()
         data = np.reshape(data, (1, 1, 28, 28))
         data = torch.from_numpy(data)
-        self.set_prediction_label(get_output_label(cnn(data)))
-        print(get_output_label(cnn(data)))
+
+        labels = get_output_labels(cnn(data))
+        output_text = ""
+        for label in labels:
+            output_text += str(label[0]) + ": " + str(label[1]) + "%\n" 
+        self.set_prediction_label(labels[0][0])
+        self.predictions_probabilities.config(text=output_text)
         
     def draw(self, event,color):
         x = event.x
