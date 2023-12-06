@@ -9,10 +9,11 @@ cnn = None
 
 class DrawingApp:
     def __init__(self, master):
+        background_color = "black"
         self.master = master
         self.master.title("Drawing")
         self.master.resizable(False,False)
-        self.master.configure(background="black")
+        self.master.configure(background=background_color)
 
         # Increase canvas size and pixel size
         self.canvas_width = 720
@@ -30,17 +31,17 @@ class DrawingApp:
         self.bigger_font = font.Font(size=48)
         self.smaller_font = font.Font(size=18)
         
-        text_label = tk.Label(root, text="Left Mouse - Draw \t Right Mouse - Erase \t C - Clear",font=self.smaller_font,bg="black")
+        text_label = tk.Label(root, text="Left Mouse - Draw \t Right Mouse - Erase \t C - Clear",font=self.smaller_font,bg=background_color,fg='white')
         text_label.grid(row=1, column=0,padx=30)
         
-        classes_label = tk.Label(root, text="Classes I can recognize: ant, bucket, cow, crab, dragon, fork, lollipop, moon, pizza, zigzag",font=self.smaller_font,bg="black")
+        classes_label = tk.Label(root, text="Classes I can recognize: ant, bucket, cow, crab, dragon, fork, lollipop, moon, pizza, zigzag",font=self.smaller_font,bg=background_color,fg='white')
         classes_label.grid(row = 2, column = 0,columnspan=2,pady=30)
         
-        self.predicted_label = tk.Label(root, text="",font=self.bigger_font,bg="black")
+        self.predicted_label = tk.Label(root, text="",font=self.bigger_font,bg=background_color,fg='white')
         self.predicted_label.grid(row = 1, column=1)
         
         #   Prediction Probabilities
-        self.predictions_probabilities = tk.Label(root, text="Draw to predict!",font=self.bigger_font,background="black",bg="black")
+        self.predictions_probabilities = tk.Label(root, text="Draw to predict!",font=self.bigger_font,background=background_color,fg='white')
         self.predictions_probabilities.grid(row = 0, column=0)
 
 
@@ -67,6 +68,7 @@ class DrawingApp:
     def setup_bindings(self):
         self.canvas.bind("<B1-Motion>", lambda event:self.draw(event=event,color="black"))
         self.canvas.bind("<B2-Motion>", self.erase)
+        self.canvas.bind("<B3-Motion>", self.erase)
         self.master.bind("<KeyPress-c>", self.clear_canvas)
 
     """
