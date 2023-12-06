@@ -1,27 +1,14 @@
 from operator import itemgetter
-from IPython.display import Math
-from IPython.display import Latex
 
 import numpy as np
-import os
-import struct
-from scipy import datasets
-
-from sklearn.metrics import classification_report,confusion_matrix
-from sklearn.neural_network import MLPClassifier
-from sympy import Number, false
 
 import torch
-import torchvision
 import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
 from torch.utils.data import Dataset, DataLoader
-
-import matplotlib.pyplot as plt
-import pandas as pd
 
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split

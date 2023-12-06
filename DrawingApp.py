@@ -1,10 +1,10 @@
-from cgitb import text
 import tkinter as tk
 from tkinter import font
 import numpy as np
 from CNN import get_output_labels, train_model;
 import torch
-
+import sys
+import os
 cnn = None
 
 class DrawingApp:
@@ -152,8 +152,16 @@ class DrawingApp:
  
  
 if __name__ == "__main__":
+
+    # allow pyinstaller to get the model when building executable
+    file_path=""
+    if getattr(sys, 'frozen', False):
+        file_path=os.path.join(sys._MEIPASS, "./model.pth")
+    else:
+        file_path = "./model.pth"
+        
     #   Only training on 3% of data right now
-    cnn = train_model(file_path="./model.pth", max_iterations=20, batch_size=4, classes=10)
+    cnn = train_model(file_path=file_path, max_iterations=20, batch_size=4, classes=10)
     cnn.eval()
     
     root = tk.Tk()

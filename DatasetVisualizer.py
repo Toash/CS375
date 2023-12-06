@@ -1,7 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import torchvision.transforms as transforms
-from PIL import Image
 import torch
 
 
