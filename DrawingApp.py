@@ -28,7 +28,7 @@ class DrawingApp:
         #self.export_button = tk.Button(self.master, text="Export to Numpy Bitmap", command=self.export_to_numpy)
         #self.export_button.grid(row = 3, column=0 )
         
-        self.bigger_font = font.Font(size=48)
+        self.bigger_font = font.Font(size=36)
         self.smaller_font = font.Font(size=18)
         
         text_label = tk.Label(root, text="Left Mouse - Draw \t Right Mouse - Erase \t C - Clear",font=self.smaller_font,bg=background_color,fg='white')
