@@ -43,13 +43,14 @@ def get_output_labels(inputs):
     """
     Return a sorted list of tuples containing labels and their probabilities. 
     Args:
-        input (tensor): input 28 x 28 image 
+        input (tensor): class probabilities
     """
     outputs = []
-    for i in range(inputs.shape[1]):
+    num_classes = inputs.shape[1]
+    for i in range(num_classes):
         outputs.append((
             list(class_labels.keys())[i],       #   label
-            torch.softmax(inputs, dim=1)[0][i].item() #   probability
+            torch.softmax(inputs, dim=1)[0][i].item() #   probabilities for the label
         ))
     outputs = sorted(outputs, key=itemgetter(1), reverse=True)    #   sort by probability
     return outputs
@@ -129,7 +130,7 @@ def load_dataset(batch_size=10, classes=2):
     )
 
     transform = transforms.Compose([
-        transforms.RandomAffine(degrees=30, translate=(.2, .2), scale=(.8, 1.2)),
+        transforms.RandomAffine(degrees=30, translate=(.2, .2), scale=(.8, 1.2), fill=-1),#fill = -1 to add the background color back again
         transforms.RandomCrop(28, pad_if_needed=True)
     ])
 

@@ -1,7 +1,7 @@
 from cgitb import text
 import tkinter as tk
+from tkinter import font
 import numpy as np
-
 from CNN import get_output_labels, train_model;
 import torch
 
@@ -12,36 +12,58 @@ class DrawingApp:
         self.master = master
         self.master.title("Drawing")
         self.master.resizable(False,False)
+        self.master.configure(background="black")
+
         # Increase canvas size and pixel size
         self.canvas_width = 720
         self.canvas_height = 720
         self.pixel_size = 25  # Adjust this value to set the size of each pixel
 
         self.canvas = tk.Canvas(self.master, width=self.canvas_width, height=self.canvas_height, bg="white")
-        self.canvas.grid(row = 0, column=1, rowspan=3)
+        self.canvas.grid(row = 0, column=1)
 
         self.setup_bindings()
-
         # Add an export button
-        self.export_button = tk.Button(self.master, text="Export to Numpy Bitmap", command=self.export_to_numpy)
-        self.export_button.grid(row = 3, column=0 )
+        #self.export_button = tk.Button(self.master, text="Export to Numpy Bitmap", command=self.export_to_numpy)
+        #self.export_button.grid(row = 3, column=0 )
         
-        text_label = tk.Label(root, text="Left Mouse - Draw \t Right Mouse - Erase \t C - Clear")
-        text_label.grid(row=4, column=0)
+        self.bigger_font = font.Font(size=48)
+        self.smaller_font = font.Font(size=18)
         
-        classes_label = tk.Label(root, text="Classes I can recognize: ant, bucket, cow, crab, dragon, fork, lollipop, moon, pizza, zigzag")
-        classes_label.grid(row = 0, column = 0)
+        text_label = tk.Label(root, text="Left Mouse - Draw \t Right Mouse - Erase \t C - Clear",font=self.smaller_font,bg="black")
+        text_label.grid(row=1, column=0,padx=30)
         
-        self.predicted_label = tk.Label(root, text="")
-        self.predicted_label.grid(row = 1, column=0)
+        classes_label = tk.Label(root, text="Classes I can recognize: ant, bucket, cow, crab, dragon, fork, lollipop, moon, pizza, zigzag",font=self.smaller_font,bg="black")
+        classes_label.grid(row = 2, column = 0,columnspan=2,pady=30)
+        
+        self.predicted_label = tk.Label(root, text="",font=self.bigger_font,bg="black")
+        self.predicted_label.grid(row = 1, column=1)
         
         #   Prediction Probabilities
-        self.predictions_probabilities = tk.Label(root, text="")
-        self.predictions_probabilities.grid(row = 2, column=0)
+        self.predictions_probabilities = tk.Label(root, text="Draw to predict!",font=self.bigger_font,background="black",bg="black")
+        self.predictions_probabilities.grid(row = 0, column=0)
+
 
     def set_prediction_label(self,label: str):
         self.predicted_label.config(text="My prediction is: " + label)
 
+    def clear_prediction_label(self):
+        self.predicted_label.config(text="")
+        
+    """
+    input - (label, probabilies) from the model
+    """
+    def set_probability_labels(self,labels: list):
+        output_text = ""
+        for label,probability in labels:
+            output_text += str(label) + ": " + '{:.1%}'.format(probability) + "\n" 
+        model_prediction = labels[0][0]
+        self.set_prediction_label(model_prediction)
+        self.predictions_probabilities.config(text=output_text)
+        
+    def clear_probability_labels(self):
+        self.predictions_probabilities.config(text="")
+        
     def setup_bindings(self):
         self.canvas.bind("<B1-Motion>", lambda event:self.draw(event=event,color="black"))
         self.canvas.bind("<B2-Motion>", self.erase)
@@ -58,11 +80,8 @@ class DrawingApp:
         data = torch.from_numpy(data)
 
         labels = get_output_labels(cnn(data))
-        output_text = ""
-        for label in labels:
-            output_text += str(label[0]) + ": " + str(label[1]) + "%\n" 
-        self.set_prediction_label(labels[0][0])
-        self.predictions_probabilities.config(text=output_text)
+        self.set_probability_labels(labels)
+
         
     def draw(self, event,color):
         x = event.x
@@ -90,7 +109,7 @@ class DrawingApp:
             self.canvas.delete(item_id)
         self.predict()
 
-    # Numpy bitmap files in the actual dataset are flattened numpy array. Values range from 0 (black) to 255(white)
+    # Numpy bitmap files in the actual dataset are flattened numpy array.
     def export_to_numpy(self):
         # Create a numpy array to store pixel values
         pixel_array = np.zeros((28, 28), dtype=np.float32)
@@ -128,7 +147,8 @@ class DrawingApp:
     
     def clear_canvas(self,event):
         self.canvas.delete("all")
-        self.set_prediction_label("")
+        self.clear_prediction_label()
+        self.clear_probability_labels()
  
  
 if __name__ == "__main__":
