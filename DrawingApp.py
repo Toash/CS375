@@ -67,6 +67,7 @@ class DrawingApp:
     def setup_bindings(self):
         self.canvas.bind("<B1-Motion>", lambda event:self.draw(event=event,color="black"))
         self.canvas.bind("<B2-Motion>", self.erase)
+        self.canvas.bind("<B3-Motion>", self.erase)
         self.master.bind("<KeyPress-c>", self.clear_canvas)
 
     """
